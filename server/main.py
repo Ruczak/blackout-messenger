@@ -1,33 +1,47 @@
+from websockets.server import serve, WebSocketServerProtocol
 import json
-import datetime
+from datetime import datetime
 import asyncio
-from queue import LifoQueue
 from communication import Communication
+from models.message import Message
 
-comms = Communication(433, 0)
 
-receive_queue = LifoQueue()
-send_queue = LifoQueue()
+comms = Communication('/tty/S0', 433, 0)
+connected = set()
 
-async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
-        await send(22, message)
 
-async def receive_handler(addr, message):
+async def echo(websocket: WebSocketServerProtocol):
+    connected.add(websocket)
     try:
-        # print(f"Received buffer \"{message}\" from address {addr}")
+        async for message in websocket:
+            data = message if isinstance(message, str) else message.decode("utf-8")
+            # await websocket.send(data)
+            m = await comms.send(22, data)
+            await send_to_all(m)
+    finally:
+        connected.remove(websocket)
 
-    except asyncio.CancelledError:
-        raise
+
+async def send_to_all(message: Message):
+    date = str(datetime.fromtimestamp(message.sender_time))
+    data = {
+        "content": message.content,
+        "time": date,
+        "sender": "Block1"
+    }
+    json_data = json.dumps(data)
+    for conn in connected:
+        await conn.send(json_data)
+
+
+async def callback(message: Message):
+    await send_to_all(message)
+
 
 async def main():
     async with serve(echo, port=8080):
-        try:
-            while True:
-                await comms.receive(receive_handler)
-        except asyncio.CancelledError:
-            raise
+        while True:
+            await comms.receive(callback)
 
 
 asyncio.run(main())
