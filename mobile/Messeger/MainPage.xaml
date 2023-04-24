@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Messeger.MainPage">
+
+    <StackLayout>
+        <Label x:Name="statusLabel" Text="Disconnected" TextColor="Red" HorizontalTextAlignment="Center"/>
+        <Entry x:Name="ipEntry" Text="10.0.2.2" HorizontalTextAlignment="Center" TextChanged="OnIpChanged"/>
+        <StackLayout x:Name="messegesLayout" VerticalOptions="CenterAndExpand">
+            <ListView x:Name="messegesListView">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding sender}" />
+                                    <Label Text="{Binding time}" />
+                                </StackLayout>
+                                <Label Text="{Binding content}"/>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+        <StackLayout Orientation="Horizontal">
+            <Entry x:Name="messegeEntry" Placeholder="Write here some text..." HorizontalOptions="StartAndExpand" WidthRequest="310"/>
+            <Button Text="SEND" Clicked="sendClicked"/>
+        </StackLayout>
+    </StackLayout>
+
+</ContentPage>
