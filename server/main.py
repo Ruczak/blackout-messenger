@@ -6,7 +6,7 @@ from communication import Communication
 from models.message import Message
 
 
-comms = Communication('/tty/S0', 433, 0)
+comms = Communication('/dev/ttyS0', 433, 0)
 connected = set()
 
 
