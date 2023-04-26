@@ -39,12 +39,12 @@ namespace Messeger
                     byte[] buffer = new byte[1024];
                     WebSocketReceiveResult result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     string message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    
 
                     if (result.EndOfMessage)
                     {
                         Messege receivedMessage = JsonConvert.DeserializeObject<Messege>(message);
 
-                        // Only add new messages to the collection
                         if (receivedMessage.time > lastMessegeTime)
                         {
                             Device.BeginInvokeOnMainThread(() =>

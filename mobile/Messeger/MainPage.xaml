@@ -24,7 +24,7 @@
             </ListView>
         </StackLayout>
         <StackLayout Orientation="Horizontal">
-            <Entry x:Name="messegeEntry" Placeholder="Write here some text..." HorizontalOptions="StartAndExpand" WidthRequest="310"/>
+            <Entry x:Name="messegeEntry" Placeholder="Write here some text..." HorizontalOptions="StartAndExpand" WidthRequest="310" MaxLength="255"/>
             <Button Text="SEND" Clicked="sendClicked"/>
         </StackLayout>
     </StackLayout>
