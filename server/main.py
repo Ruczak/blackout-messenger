@@ -10,14 +10,14 @@ comms = Communication('/dev/ttyS0', 433, 0)
 connected = set()
 
 
-async def echo(websocket: WebSocketServerProtocol):
+async def echo(websocket, path):
     connected.add(websocket)
-    print("Connected")
+    print(f"Websocket connected. Total websockets: {len(connected)}")
     try:
         async for message in websocket:
-            print(f"Message: {str(message)}")
             data = message if isinstance(message, str) else message.decode("utf-8")
             # await websocket.send(data)
+            print(f"Message {data}")
             m = await comms.send(22, data)
             await send_to_all(m)
     finally:
@@ -43,6 +43,7 @@ async def callback(message: Message):
 async def main():
     async with serve(echo, port=8080):
         print("Websocket started")
+        await asyncio.Future()
         while True:
             await comms.receive(callback)
 
