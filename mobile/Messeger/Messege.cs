@@ -9,6 +9,6 @@ namespace Messeger
         public int Id { get; set; }
         public string content { get; set; }
         public string sender { get; set; }
-        public string time { get; set; }
+        public DateTime time { get; set; }
     }
 }

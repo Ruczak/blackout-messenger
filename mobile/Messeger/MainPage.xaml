@@ -14,7 +14,7 @@
                             <StackLayout>
                                 <StackLayout Orientation="Horizontal">
                                     <Label Text="{Binding sender}" />
-                                    <Label Text="{Binding time}" />
+                                    <Label Text="{Binding time, StringFormat='{0:HH:mm dd/MM/yyyy}'}" />
                                 </StackLayout>
                                 <Label Text="{Binding content}"/>
                             </StackLayout>
