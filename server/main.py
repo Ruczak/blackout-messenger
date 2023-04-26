@@ -37,15 +37,27 @@ async def send_to_all(message: Message):
 
 
 async def callback(message: Message):
+    print(f"Received message \"{message.content}\" from {message.sender}")
     await send_to_all(message)
 
 
-async def main():
-    async with serve(echo, port=8080):
-        print("Websocket started")
-        await asyncio.Future()
+async def receive_infinitely():
+    try:
+        print(f"Started receiving at address {comms.lora.addr}")
         while True:
             await comms.receive(callback)
+    except asyncio.CancelledError:
+        print("Stopped receiving")
+
+
+async def main():
+    try:
+        async with serve(echo, port=8080):
+            print("Websocket started")
+            await asyncio.Future()
+    except asyncio.CancelledError:
+        print("Program stopped")
 
 
 asyncio.run(main())
+asyncio.run(receive_infinitely())
