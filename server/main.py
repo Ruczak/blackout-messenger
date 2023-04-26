@@ -12,8 +12,10 @@ connected = set()
 
 async def echo(websocket: WebSocketServerProtocol):
     connected.add(websocket)
+    print("Connected")
     try:
         async for message in websocket:
+            print(f"Message: {str(message)}")
             data = message if isinstance(message, str) else message.decode("utf-8")
             # await websocket.send(data)
             m = await comms.send(22, data)
@@ -40,6 +42,7 @@ async def callback(message: Message):
 
 async def main():
     async with serve(echo, port=8080):
+        print("Websocket started")
         while True:
             await comms.receive(callback)
 
