@@ -4,13 +4,14 @@ from datetime import datetime
 import asyncio
 from communication import Communication
 from models.message import Message
+from concurrent.futures import ProcessPoolExecutor
 
 
 comms = Communication('/dev/ttyS0', 433, 0)
 connected = set()
 
 
-async def echo(websocket, path):
+async def echo(websocket: WebSocketServerProtocol, path):
     connected.add(websocket)
     print(f"Websocket connected. Total websockets: {len(connected)}")
     try:
@@ -59,5 +60,9 @@ async def main():
         print("Program stopped")
 
 
-asyncio.run(main())
-asyncio.run(receive_infinitely())
+executor = ProcessPoolExecutor(2)
+loop = asyncio.new_event_loop()
+boo = loop.run_in_executor(executor, main)
+baa = loop.run_in_executor(executor, receive_infinitely)
+
+loop.run_forever()
