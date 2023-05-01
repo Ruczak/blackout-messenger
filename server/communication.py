@@ -30,14 +30,12 @@ class Communication:
 
     # receive information from other device and execute handler
     # with address and message passed
-    async def receive(self, handler: Callable[[Message], Coroutine]):
-        try:
-            if self.lora.ser.inWaiting() > 0:
-                await asyncio.sleep(0.5)
-                r_buff = self.lora.ser.read(self.lora.ser.inWaiting())
+    def receive(self) -> Message:
+        if self.lora.ser.inWaiting() > 0:
+            time.sleep(0.5)
+            r_buff = self.lora.ser.read(self.lora.ser.inWaiting())
 
-                m = Message(int(r_buff[4]), self.lora.addr, r_buff[6:])
-                handler(m)
-        except asyncio.CancelledError:
-            print("Cancelled receiving data")
-            raise
+            m = Message(int(r_buff[4]), self.lora.addr, r_buff[6:])
+            return m
+
+        return None

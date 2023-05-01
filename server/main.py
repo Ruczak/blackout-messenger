@@ -1,14 +1,15 @@
 from websockets.server import serve, WebSocketServerProtocol
 import json
-from datetime import datetime
 import asyncio
+from threading import Thread
+from queue import LifoQueue
+from datetime import datetime
 from communication import Communication
 from models.message import Message
-from concurrent.futures import ProcessPoolExecutor
-
 
 comms = Communication('/dev/ttyS0', 433, 0)
 connected = set()
+receive_queue = LifoQueue()
 
 
 async def echo(websocket: WebSocketServerProtocol, path):
@@ -37,18 +38,19 @@ async def send_to_all(message: Message):
         await conn.send(json_data)
 
 
-async def callback(message: Message):
-    print(f"Received message \"{message.content}\" from {message.sender}")
-    await send_to_all(message)
+async def check_queue():
+    while not receive_queue.empty():
+        message = receive_queue.get()
+        await send_to_all(message)
 
 
-async def receive_infinitely():
-    try:
-        print(f"Started receiving at address {comms.lora.addr}")
-        while True:
-            await comms.receive(callback)
-    except asyncio.CancelledError:
-        print("Stopped receiving")
+def receive_infinitely():
+    print(f"Started receiving at address {comms.lora.addr}")
+    while True:
+        message = comms.receive()
+        if message != None:
+            print(f"Received message \"{message.content}\" from {message.sender}")
+            receive_queue.put(message)
 
 
 async def main():
@@ -60,9 +62,6 @@ async def main():
         print("Program stopped")
 
 
-executor = ProcessPoolExecutor(2)
-loop = asyncio.new_event_loop()
-boo = loop.run_in_executor(executor, main)
-baa = loop.run_in_executor(executor, receive_infinitely)
-
-loop.run_forever()
+receive_thread = Thread(target=receive_infinitely)
+receive_thread.start()
+asyncio.run(main())
