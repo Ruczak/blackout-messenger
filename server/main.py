@@ -1,32 +1,31 @@
-from websockets.server import serve, WebSocketServerProtocol
 import json
-import asyncio
 from threading import Thread
+from websockets.sync.server import serve, ServerConnection
 from queue import LifoQueue
 from datetime import datetime
 from communication import Communication
 from models.message import Message
 
-comms = Communication('/dev/ttyS0', 433, 0)
+radio_module = Communication('/dev/ttyS0', 433, 0)
 connected = set()
-receive_queue = LifoQueue()
+lora_send_queue = LifoQueue()
 
 
-async def echo(websocket: WebSocketServerProtocol, path):
+def ws_handler(websocket: ServerConnection):
     connected.add(websocket)
     print(f"Websocket connected. Total websockets: {len(connected)}")
     try:
-        async for message in websocket:
+        for message in websocket:
             data = message if isinstance(message, str) else message.decode("utf-8")
-            # await websocket.send(data)
-            print(f"Message {data}")
-            m = await comms.send(22, data)
-            await send_to_all(m)
+            m = radio_module.send(0, data)
+            print(f"Sent data to {m.receiver} / {radio_module.lora.freq} MHz: {m.content}")
+            send_to_all(m)
     finally:
         connected.remove(websocket)
+        print(f"Websocket disconnected. Total websockets: {len(connected)}")
 
 
-async def send_to_all(message: Message):
+def send_to_all(message: Message):
     date = str(datetime.fromtimestamp(message.sender_time))
     data = {
         "content": message.content,
@@ -35,33 +34,33 @@ async def send_to_all(message: Message):
     }
     json_data = json.dumps(data)
     for conn in connected:
-        await conn.send(json_data)
+        conn.send(json_data)
 
 
-async def check_queue():
-    while not receive_queue.empty():
-        message = receive_queue.get()
-        await send_to_all(message)
-
-
-def receive_infinitely():
-    print(f"Started receiving at address {comms.lora.addr}")
+def radio_thread():
+    print(f"Started receiving at address {radio_module.lora.addr}")
     while True:
-        message = comms.receive()
-        if message != None:
+        # sending data
+        if not lora_send_queue.empty():
+            item: Message = lora_send_queue.get()
+            radio_module.send(22, item.content)
+            lora_send_queue.task_done()
+
+        # receiving data
+        message = radio_module.receive()
+        if message is not None:
             print(f"Received message \"{message.content}\" from {message.sender}")
-            receive_queue.put(message)
+            send_to_all(message)
 
 
-async def main():
-    try:
-        async with serve(echo, port=8080):
-            print("Websocket started")
-            await asyncio.Future()
-    except asyncio.CancelledError:
-        print("Program stopped")
+def websocket_thread():
+    with serve(ws_handler, '', port=8080) as server:
+        print("Websocket server started")
+        server.serve_forever()
 
 
-receive_thread = Thread(target=receive_infinitely)
-receive_thread.start()
-asyncio.run(main())
+if __name__ == '__main__':
+    ws_thread = Thread(target=websocket_thread)
+    communication_thread = Thread(target=radio_thread)
+    ws_thread.start()
+    communication_thread.start()
