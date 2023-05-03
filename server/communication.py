@@ -36,5 +36,5 @@ class Communication:
                 return m
             return None
         except struct.error:
-            print("An error occured!")
+            print("An error occurred!")
             return None
