@@ -6,9 +6,12 @@ from datetime import datetime
 from communication import Communication
 from models.message import Message
 
-radio_module = Communication('/dev/ttyS0', 433, 0)
+device_identifier: str = "Block1"
+radio_address = 0
+
+radio_module = Communication('/dev/ttyS0', 433, radio_address)
 connected = set()
-lora_send_queue = LifoQueue()
+radio_send_queue = LifoQueue()
 
 
 def ws_handler(websocket: ServerConnection):
@@ -41,10 +44,10 @@ def radio_thread():
     print(f"Started receiving at address {radio_module.lora.addr}")
     while True:
         # sending data
-        if not lora_send_queue.empty():
-            item: Message = lora_send_queue.get()
+        if not radio_send_queue.empty():
+            item: Message = radio_send_queue.get()
             radio_module.send(22, item.content)
-            lora_send_queue.task_done()
+            radio_send_queue.task_done()
 
         # receiving data
         message = radio_module.receive()
