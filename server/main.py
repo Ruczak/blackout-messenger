@@ -12,7 +12,7 @@ from models.message import Message
 
 load_dotenv()
 
-database = Database(os.environ.get("DB_USER"), os.environ.get("DB_PWD"))
+database = Database(os.environ.get("DB_USER"), os.environ.get("DB_PWD"), os.environ.get("DB_NAME"))
 radio_module = Communication('/dev/ttyS0', 433, int(os.environ.get("RADIO_ADDRESS")), os.environ.get("DEVICE_NAME"))
 connected = set()
 radio_send_queue: LifoQueue[str] = LifoQueue()
