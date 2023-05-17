@@ -58,5 +58,3 @@ class Database:
             for (db_id,) in self.cursor:
                 message.id = db_id
                 break
-
-

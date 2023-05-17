@@ -18,8 +18,9 @@ class Communication:
         offset_frequency = int(self.lora.freq) - (850 if int(self.lora.freq) > 850 else 410)
 
         buffer = m.encode()
-        data = bytes([int(self.lora.addr) >> 8]) + bytes([int(self.lora.addr) & 0xff]) + bytes([offset_frequency]) + bytes([
-            self.lora.addr >> 8]) + bytes([self.lora.addr & 0xff]) + bytes([self.lora.offset_freq]) + buffer
+        data = bytes([int(self.lora.addr) >> 8]) + bytes([int(self.lora.addr) & 0xff]) + bytes(
+            [offset_frequency]) + bytes([self.lora.addr >> 8]) + bytes([self.lora.addr & 0xff]) + bytes(
+            [self.lora.offset_freq]) + buffer
 
         self.lora.send(data)
 
