@@ -4,6 +4,7 @@ import time
 
 class Message:
     def __init__(self, address: int, **kwargs):
+        self.id: int = 0
         self.address = address
 
         if 'buffer' in kwargs and isinstance(kwargs['buffer'], bytes):

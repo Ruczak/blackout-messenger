@@ -1,15 +1,22 @@
+import os
 import json
-from threading import Thread
-from websockets.sync.server import serve, ServerConnection
-from queue import LifoQueue
 from datetime import datetime
+from threading import Thread
+from queue import LifoQueue
+from dotenv import load_dotenv
+from websockets.sync.server import serve, ServerConnection
+
+from database import Database
 from communication import Communication
 from models.message import Message
 
-device_identifier: str = "Block1"
-radio_address = 0
+load_dotenv()
 
-radio_module = Communication('/dev/ttyS0', 433, radio_address)
+device_identifier: str = os.environ.get("DEVICE_NAME")
+radio_address: int = int(os.environ.get("RADIO_ADDRESS"))
+
+database = Database(os.environ.get("DB_USER"), os.environ.get("DB_PWD"))
+radio_module = Communication('/dev/ttyS0', 433, radio_address, device_identifier)
 connected = set()
 radio_send_queue: LifoQueue[str] = LifoQueue()
 
