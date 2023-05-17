@@ -11,7 +11,7 @@ radio_address = 0
 
 radio_module = Communication('/dev/ttyS0', 433, radio_address)
 connected = set()
-radio_send_queue = LifoQueue()
+radio_send_queue: LifoQueue[str] = LifoQueue()
 
 
 def ws_handler(websocket: ServerConnection):
@@ -20,22 +20,23 @@ def ws_handler(websocket: ServerConnection):
     try:
         for message in websocket:
             data = message if isinstance(message, str) else message.decode("utf-8")
-            m = radio_module.send(0, data)
-            print(f"Sent data to {m.receiver} / {radio_module.lora.freq} MHz: {m.content}")
-            send_to_all(m)
+
+            radio_send_queue.put(data)
     finally:
         connected.remove(websocket)
         print(f"Websocket disconnected. Total websockets: {len(connected)}")
 
 
 def send_to_all(message: Message):
-    date = str(datetime.fromtimestamp(message.sender_time))
+    sender_time = str(datetime.fromtimestamp(message.sender_time))
     data = {
+        "address": message.address,
         "content": message.content,
-        "time": date,
-        "sender": "Block1"
+        "sender_time": sender_time,
+        "sender": message.sender,
     }
     json_data = json.dumps(data)
+
     for conn in connected:
         conn.send(json_data)
 
@@ -45,8 +46,10 @@ def radio_thread():
     while True:
         # sending data
         if not radio_send_queue.empty():
-            item: Message = radio_send_queue.get()
-            radio_module.send(22, item.content)
+            item = radio_send_queue.get()
+            m = radio_module.send(item)
+            send_to_all(m)
+            print(f"Sent data on address {radio_module.lora.addr}: {m.content}")
             radio_send_queue.task_done()
 
         # receiving data
