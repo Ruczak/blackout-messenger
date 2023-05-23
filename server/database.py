@@ -17,6 +17,8 @@ class Database:
                 database=db_name
             )
 
+            self.connection.autocommit = False
+
             self.cursor = self.connection.cursor()
         except mariadb.Error as e:
             print(f"Error connecting to the database: {e}")
@@ -30,28 +32,32 @@ class Database:
         print("Connection closed")
 
     def get_message(self, message_id: int) -> Optional[Message]:
-        self.cursor.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
+        try:
+            self.cursor.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
 
-        for (db_id, sender, content, sender_time, address) in self.cursor:
-            m = Message(address, sender=sender, content=content, sender_time=sender_time)
-            m.id = db_id
-            return m
+            for (db_id, sender, content, sender_time, address) in self.cursor:
+                m = Message(address, sender=sender, content=content, sender_time=sender_time)
+                m.id = db_id
+                return m
 
-        return None
+            return None
+        except mariadb.Error as e:
+            print(f"Error while retrieving from the database {e}")
 
     def get_all_messages(self) -> tuple[Message]:
-        result: list[Message] = []
+        try:
+            result: list[Message] = []
 
-        self.cursor.execute("SELECT * FROM messages")
+            self.cursor.execute("SELECT * FROM messages")
 
-        for (db_id, sender, content, sender_time, address) in self.cursor:
-            m = Message(address, sender=sender, content=content, sender_time=sender_time)
-            m.id = db_id
-            result.append(m)
+            for (db_id, sender, content, sender_time, address) in self.cursor:
+                m = Message(address, sender=sender, content=content, sender_time=sender_time)
+                m.id = db_id
+                result.append(m)
 
-        #print(result[0])
-
-        return tuple(result)
+            return tuple(result)
+        except mariadb.Error as e:
+            print(f"Error while retrieving from the database {e}")
 
     def create_message(self, message: Message):
         if message.id == 0:
@@ -59,7 +65,9 @@ class Database:
                 self.cursor.execute("INSERT INTO messages (sender, content, address, sender_time) "
                                     "VALUES (?, ?, ?, ?)",
                                     (message.sender, message.content, message.address,
-                                    datetime.fromtimestamp(message.sender_time).strftime("%Y-%m-%d %H:%M:%S")))
+                                     datetime.fromtimestamp(message.sender_time).strftime("%Y-%m-%d %H:%M:%S")))
+                self.connection.commit()
+
                 message.id = self.cursor.lastrowid
 
             except mariadb.Error as e:
