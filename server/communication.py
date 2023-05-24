@@ -13,7 +13,7 @@ class Communication:
 
     # send row in specified format by frequency to address
     def send(self, message: str) -> Message:
-        m = Message(self.lora.addr, sender=self.device_name, content=message)
+        m = Message(sender=self.device_name, content=message)
 
         offset_frequency = int(self.lora.freq) - (850 if int(self.lora.freq) > 850 else 410)
 
@@ -34,7 +34,7 @@ class Communication:
                 time.sleep(0.5)
                 r_buff = self.lora.ser.read(self.lora.ser.inWaiting())
 
-                m = Message(int(r_buff[4]), buffer=r_buff[6:])
+                m = Message(buffer=r_buff[6:])
                 return m
             return None
         except struct.error:

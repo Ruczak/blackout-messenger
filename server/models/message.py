@@ -1,12 +1,10 @@
-import struct
 import time
 
 
 class Message:
-    def __init__(self, address: int, **kwargs):
+    def __init__(self, **kwargs):
         self.id: int = 0
-        self.address = address
-        self.sender_time = time.time()
+        self.time = time.time()
 
         if 'buffer' in kwargs and isinstance(kwargs['buffer'], bytes):
             self.__decode(kwargs['buffer'])
