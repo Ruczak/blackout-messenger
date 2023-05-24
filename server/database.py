@@ -37,7 +37,7 @@ class Database:
 
             for (db_id, sender, content, sender_time, address) in self.cursor:
                 m = Message(sender=sender, content=content)
-                m.time = sender_time
+                m.time = datetime.timestamp(sender_time)
                 m.id = db_id
                 return m
 
@@ -53,7 +53,7 @@ class Database:
 
             for (db_id, sender, content, sender_time, address) in self.cursor:
                 m = Message(sender=sender, content=content)
-                m.time = sender_time
+                m.time = datetime.timestamp(sender_time)
                 m.id = db_id
                 result.append(m)
 

@@ -20,9 +20,10 @@ radio_send_queue: LifoQueue[str] = LifoQueue()
 
 def send_previous_messages(websocket: ServerConnection):
     for message in database.get_all_messages():
+        iso_time = str(datetime.fromtimestamp(message.time))
         data = {
             "content": message.content,
-            "time": message.time,
+            "time": iso_time,
             "sender": message.sender,
         }
         json_data = json.dumps(data)
