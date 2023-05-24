@@ -14,7 +14,7 @@ load_dotenv()
 
 database = Database(os.environ.get("DB_USER"), os.environ.get("DB_PWD"), os.environ.get("DB_NAME"))
 radio_module = Communication('/dev/ttyS0', 433, int(os.environ.get("RADIO_ADDRESS")), os.environ.get("DEVICE_NAME"))
-connected = set()
+connected: set[ServerConnection] = set()
 radio_send_queue: LifoQueue[str] = LifoQueue()
 
 
@@ -34,13 +34,17 @@ def send_previous_messages(websocket: ServerConnection):
 def ws_handler(websocket: ServerConnection):
     connected.add(websocket)
     print(f"Websocket connected. Total websockets: {len(connected)}")
-    send_previous_messages(websocket)
 
     try:
+        send_previous_messages(websocket)
+
         for message in websocket:
             data = message if isinstance(message, str) else message.decode("utf-8")
 
             radio_send_queue.put(data)
+    except ConnectionError:
+        connected.remove(websocket)
+        print(f"Connection Error, websocket disconnected. Total websockets: {len(connected)}")
     finally:
         connected.remove(websocket)
         print(f"Websocket disconnected. Total websockets: {len(connected)}")
@@ -56,7 +60,11 @@ def send_to_all(message: Message):
     json_data = json.dumps(data)
 
     for conn in connected:
-        conn.send(json_data)
+        try:
+            conn.send(json_data)
+        except ConnectionError:
+            connected.remove(conn)
+            print(f"Connection Error, websocket disconnected. Total websockets: {len(connected)}")
 
 
 def radio_thread():

@@ -20,6 +20,4 @@ class Message:
         self.sender, self.content = buffer.decode("utf-8").split('\n')
 
     def encode(self) -> bytes:
-        s = bytes(f"{self.sender}\n{self.content}", "utf-8")
-        print(s)
-        return s
+        return bytes(f"{self.sender}\n{self.content}", "utf-8")
