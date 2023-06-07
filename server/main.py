@@ -20,7 +20,7 @@ radio_send_queue: LifoQueue[str] = LifoQueue()
 
 def send_previous_messages(websocket: ServerConnection):
     for message in database.get_all_messages():
-        iso_time = str(datetime.fromtimestamp(message.time))
+        iso_time = datetime.fromtimestamp(message.time).strftime('%Y-%m-%d %H-%M-%S')
         data = {
             "content": message.content,
             "time": iso_time,
@@ -51,7 +51,7 @@ def ws_handler(websocket: ServerConnection):
 
 
 def send_to_all(message: Message):
-    iso_time = str(datetime.fromtimestamp(message.time))
+    iso_time = datetime.fromtimestamp(message.time).strftime('%Y-%m-%d %H-%M-%S')
     data = {
         "content": message.content,
         "time": iso_time,
