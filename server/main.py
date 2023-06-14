@@ -20,8 +20,9 @@ radio_send_queue: LifoQueue[str] = LifoQueue()
 
 def send_previous_messages(websocket: ServerConnection):
     for message in database.get_all_messages():
-        iso_time = datetime.fromtimestamp(message.time).strftime('%Y-%m-%d %H-%M-%S')
+        iso_time = str(datetime.fromtimestamp(message.time).strftime("%Y-%m-%d %H:%M:%S"))
         data = {
+            "MessageType": "Message",
             "content": message.content,
             "time": iso_time,
             "sender": message.sender,
@@ -36,6 +37,13 @@ def ws_handler(websocket: ServerConnection):
     print(f"Websocket connected. Total websockets: {len(connected)}")
 
     try:
+        # Sending initial message with identifier
+        identifier_message = {
+            "MessageType": "ServerID",
+            "content": os.environ.get("DEVICE_NAME"),
+        }
+        websocket.send(json.dumps(identifier_message))
+
         send_previous_messages(websocket)
 
         for message in websocket:
@@ -51,8 +59,9 @@ def ws_handler(websocket: ServerConnection):
 
 
 def send_to_all(message: Message):
-    iso_time = datetime.fromtimestamp(message.time).strftime('%Y-%m-%d %H-%M-%S')
+    iso_time = str(datetime.fromtimestamp(message.time).strftime("%Y-%m-%d %H:%M:%S"))
     data = {
+        "MessageType": "Message",
         "content": message.content,
         "time": iso_time,
         "sender": message.sender,
