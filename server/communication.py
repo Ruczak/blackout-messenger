@@ -34,9 +34,9 @@ class Communication:
                 time.sleep(0.5)
                 r_buff = self.lora.ser.read(self.lora.ser.inWaiting())
 
-                m = Message(buffer=r_buff[6:])
+                m = Message(buffer=r_buff[3:])
                 return m
             return None
-        except struct.error:
+        except:
             print("An error occurred!")
             return None

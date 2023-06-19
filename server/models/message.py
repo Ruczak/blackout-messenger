@@ -17,6 +17,7 @@ class Message:
             raise ValueError("Arguments passed to the constructor do not match")
 
     def __decode(self, buffer: bytes):
+        print(buffer)
         self.sender, self.content = buffer.decode("utf-8").split('\n')
 
     def encode(self) -> bytes:
