@@ -36,7 +36,8 @@ class Database:
             self.cursor.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
 
             for (db_id, sender, content, sender_time, address) in self.cursor:
-                m = Message(address, sender=sender, content=content, sender_time=sender_time)
+                m = Message(sender=sender, content=content)
+                m.time = datetime.timestamp(sender_time)
                 m.id = db_id
                 return m
 
@@ -51,7 +52,8 @@ class Database:
             self.cursor.execute("SELECT * FROM messages")
 
             for (db_id, sender, content, sender_time, address) in self.cursor:
-                m = Message(address, sender=sender, content=content, sender_time=sender_time)
+                m = Message(sender=sender, content=content)
+                m.time = datetime.timestamp(sender_time)
                 m.id = db_id
                 result.append(m)
 
@@ -64,8 +66,8 @@ class Database:
             try:
                 self.cursor.execute("INSERT INTO messages (sender, content, address, sender_time) "
                                     "VALUES (?, ?, ?, ?)",
-                                    (message.sender, message.content, message.address,
-                                     datetime.fromtimestamp(message.sender_time).strftime("%Y-%m-%d %H:%M:%S")))
+                                    (message.sender, message.content, 0,
+                                     datetime.fromtimestamp(message.time).strftime("%Y-%m-%d %H:%M:%S")))
                 self.connection.commit()
 
                 message.id = self.cursor.lastrowid
