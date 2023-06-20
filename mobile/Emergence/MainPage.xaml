@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Emergence"
+             x:Class="Emergence.MainPage">
+    <ContentPage.Resources>
+        <DataTemplate x:Key="IncomingMessageTemplate">
+            <Frame Margin="5" Padding="5" WidthRequest="275" HorizontalOptions="Start" HasShadow="True">
+                <StackLayout>
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="{Binding sender}" Margin="0, 0, 10, 0"/>
+                        <Label Text="{Binding time}"/>
+                    </StackLayout>
+                    <BoxView Color="Grey" Margin="0, 5" HorizontalOptions="Fill" HeightRequest="1"/>
+                    <Label Text="{Binding content}"/>
+                </StackLayout>
+            </Frame>
+        </DataTemplate>
+
+        <DataTemplate x:Key="OutgoingMessageTemplate">
+            <Frame Margin="5" Padding="5" WidthRequest="275" HorizontalOptions="End" HasShadow="True" BackgroundColor="LightBlue">
+                <StackLayout>
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="{Binding sender}" Margin="0, 0, 10, 0"/>
+                        <Label Text="{Binding time}"/>
+                    </StackLayout>
+                    <BoxView Color="Blue" Margin="0, 5" HorizontalOptions="Fill" HeightRequest="1"/>
+                    <Label Text="{Binding content}"/>
+                </StackLayout>
+            </Frame>
+        </DataTemplate>
+
+        <local:MessageTemplateSelector x:Key="messageTemplateSelector" 
+                                       IncomingTemplate="{StaticResource IncomingMessageTemplate}"
+                                       OutgoingTemplate="{StaticResource OutgoingMessageTemplate}" />
+    </ContentPage.Resources>
+    
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackLayout >
+            <Label x:Name="statusLabel" Text="Disconnected" TextColor="Red" HorizontalTextAlignment="Center"/>
+            <Entry x:Name="ipEntry" Text="192.168.159.172" HorizontalTextAlignment="Center"/>
+            <Button x:Name="connectButton" Text="Connect" Clicked="connectClicked"/>
+        </StackLayout>
+        <CollectionView x:Name="messegesListView" 
+                        SelectionMode="None" 
+                        ItemSizingStrategy="MeasureAllItems" 
+                        Grid.Row="1" 
+                        VerticalOptions="FillAndExpand"
+                        ItemTemplate="{StaticResource messageTemplateSelector}"/>
+        <StackLayout Orientation="Horizontal" Grid.Row="2">
+            <Entry x:Name="messegeEntry" Placeholder="Write here some text..." HorizontalOptions="StartAndExpand" MaxLength="64"/>
+            <Button Text="SEND" Clicked="sendClicked"/>
+        </StackLayout>
+    </Grid>
+
+</ContentPage>
